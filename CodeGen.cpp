@@ -5,12 +5,14 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
+#include <limits.h>
+#include <memory.h>
 #include "CodeGen.h"
 #include "ASTNodes.h"
 #include "TypeSystem.h"
-
-
+//#define DISPLAY_PARSE_PROCESS
 using legacy::PassManager;
+
 #define ISTYPE(value, id) (value->getType()->getTypeID() == id)
 
 
@@ -32,7 +34,9 @@ static Value* CastToBoolean(CodeGenContext& context, Value* condValue){
 
 static llvm::Value* calcArrayIndex(shared_ptr<NArrayIndex> index, CodeGenContext &context){
     auto sizeVec = context.getArraySize(index->arrayName->name);
-    cout << "sizeVec:" << sizeVec.size() << ", expressions: " << index->expressions->size() << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "sizeVec:" << sizeVec.size() << ", expressions: " << index->expressions->size() << std::endl;
+#endif
     assert(sizeVec.size() > 0 && sizeVec.size() == index->expressions->size());
     auto expression = *(index->expressions->rbegin());
 
@@ -63,7 +67,9 @@ void CodeGenContext::generateCode(NBlock& root) {
 }
 
 llvm::Value* NAssignment::codeGen(CodeGenContext &context) {
-    cout << "Generating assignment of " << this->lhs->name << " = " << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating assignment of " << this->lhs->name << " = " << std::endl;
+#endif
     Value* dst = context.getSymbolValue(this->lhs->name);
     auto dstType = context.getSymbolType(this->lhs->name);
     string dstTypeStr = dstType->name;
@@ -72,8 +78,8 @@ llvm::Value* NAssignment::codeGen(CodeGenContext &context) {
     }
     Value* exp = exp = this->rhs->codeGen(context);
 
-    cout << "dst typeid = " << TypeSystem::llvmTypeToStr(context.typeSystem.getVarType(dstTypeStr)) << endl;
-    cout << "exp typeid = " << TypeSystem::llvmTypeToStr(exp) << endl;
+    std::cout << "dst typeid = " << TypeSystem::llvmTypeToStr(context.typeSystem.getVarType(dstTypeStr)) << std::endl;
+    std::cout << "exp typeid = " << TypeSystem::llvmTypeToStr(exp) << std::endl;
 
     exp = context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
     context.builder.CreateStore(exp, dst);
@@ -81,8 +87,9 @@ llvm::Value* NAssignment::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value* NBinaryOperator::codeGen(CodeGenContext &context) {
-    cout << "Generating binary operator" << endl;
-
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating binary operator" << std::endl;
+#endif
     Value* L = this->lhs->codeGen(context);
     Value* R = this->rhs->codeGen(context);
     bool fp = false;
@@ -100,9 +107,9 @@ llvm::Value* NBinaryOperator::codeGen(CodeGenContext &context) {
     if( !L || !R ){
         return nullptr;
     }
-    cout << "fp = " << ( fp ? "true" : "false" ) << endl;
-    cout << "L is " << TypeSystem::llvmTypeToStr(L) << endl;
-    cout << "R is " << TypeSystem::llvmTypeToStr(R) << endl;
+    std::cout << "fp = " << ( fp ? "true" : "false" ) << std::endl;
+    std::cout << "L is " << TypeSystem::llvmTypeToStr(L) << std::endl;
+    std::cout << "R is " << TypeSystem::llvmTypeToStr(R) << std::endl;
 
     switch (this->op){
         case TPLUS:
@@ -142,7 +149,9 @@ llvm::Value* NBinaryOperator::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value* NBlock::codeGen(CodeGenContext &context) {
-    cout << "Generating block" << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating block" << std::endl;
+#endif
     Value* last = nullptr;
     for(auto it=this->statements->begin(); it!=this->statements->end(); it++){
         last = (*it)->codeGen(context);
@@ -151,17 +160,23 @@ llvm::Value* NBlock::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value* NInteger::codeGen(CodeGenContext &context) {
-    cout << "Generating Integer: " << this->value << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating Integer: " << this->value << std::endl;
+#endif
     return ConstantInt::get(Type::getInt32Ty(context.llvmContext), this->value, true);
 }
 
 llvm::Value* NDouble::codeGen(CodeGenContext &context) {
-    cout << "Generating Double: " << this->value << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating Double: " << this->value << std::endl;
+#endif
     return ConstantFP::get(Type::getDoubleTy(context.llvmContext), this->value);
 }
 
 llvm::Value* NIdentifier::codeGen(CodeGenContext &context) {
-    cout << "Generating identifier " << this->name << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating identifier " << this->name << std::endl;
+#endif
     Value* value = context.getSymbolValue(this->name);
     if( !value ){
         return LogErrorV("Unknown variable name " + this->name);
@@ -169,7 +184,7 @@ llvm::Value* NIdentifier::codeGen(CodeGenContext &context) {
     if( value->getType()->isPointerTy() ){
         auto arrayPtr = context.builder.CreateLoad(value, "arrayPtr");
         if( arrayPtr->getType()->isArrayTy() ){
-            cout << "(Array Type)" << endl;
+            std::cout << "(Array Type)" << std::endl;
             std::vector<Value*> indices;
             indices.push_back(ConstantInt::get(context.typeSystem.intTy, 0, false));
             auto ptr = context.builder.CreateInBoundsGEP(value, indices, "arrayPtr");
@@ -185,7 +200,9 @@ llvm::Value* NExpressionStatement::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value* NFunctionDeclaration::codeGen(CodeGenContext &context) {
-    cout << "Generating function declaration of " << this->id->name << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating function declaration of " << this->id->name << std::endl;
+#endif
     std::vector<Type*> argTypes;
 
     for(auto &arg: *this->arguments){
@@ -244,11 +261,10 @@ llvm::Value* NFunctionDeclaration::codeGen(CodeGenContext &context) {
 
 
 llvm::Value* NStructDeclaration::codeGen(CodeGenContext& context) {
-    cout << "Generating struct declaration of " << this->name->name << endl;
-
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating struct declaration of " << this->name->name << std::endl;
+#endif
     std::vector<Type*> memberTypes;
-
-//    context.builder.createstr
     auto structType = StructType::create(context.llvmContext, this->name->name);
     context.typeSystem.addStructType(this->name->name, structType);
 
@@ -263,12 +279,15 @@ llvm::Value* NStructDeclaration::codeGen(CodeGenContext& context) {
 }
 
 llvm::Value* NMethodCall::codeGen(CodeGenContext &context) {
-    cout << "Generating method call of " << this->id->name << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating method call of " << this->id->name << std::endl;
+#endif
     Function * calleeF = context.theModule->getFunction(this->id->name);
     if( !calleeF ){
         LogErrorV("Function name not found");
     }
     if( calleeF->arg_size() != this->arguments->size() ){
+        //Here is a bug???
         LogErrorV("Function arguments size not match, calleeF=" + std::to_string(calleeF->size()) + ", this->arguments=" + std::to_string(this->arguments->size()) );
     }
     std::vector<Value*> argsv;
@@ -282,7 +301,9 @@ llvm::Value* NMethodCall::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value* NVariableDeclaration::codeGen(CodeGenContext &context) {
-    cout << "Generating variable declaration of " << this->type->name << " " << this->id->name << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating variable declaration of " << this->type->name << " " << this->id->name << std::endl;
+#endif
     Type* type = TypeOf(*this->type, context);
     Value* initial = nullptr;
 
@@ -318,14 +339,18 @@ llvm::Value* NVariableDeclaration::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value* NReturnStatement::codeGen(CodeGenContext &context) {
-    cout << "Generating return statement" << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating return statement" << std::endl;
+#endif
     Value* returnValue = this->expression->codeGen(context);
     context.setCurrentReturnValue(returnValue);
     return returnValue;
 }
 
 llvm::Value* NIfStatement::codeGen(CodeGenContext &context) {
-    cout << "Generating if statement" << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating if statement" << std::endl;
+#endif
     Value* condValue = this->condition->codeGen(context);
     if( !condValue )
         return nullptr;
@@ -423,8 +448,9 @@ llvm::Value* NForStatement::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value *NStructMember::codeGen(CodeGenContext &context) {
-    cout << "Generating struct member expression of " << this->id->name << "." << this->member->name << endl;
-
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating struct member expression of " << this->id->name << "." << this->member->name << std::endl;
+#endif
     auto varPtr = context.getSymbolValue(this->id->name);
     auto structPtr = context.builder.CreateLoad(varPtr, "structPtr");
     structPtr->setAlignment(4);
@@ -445,7 +471,9 @@ llvm::Value *NStructMember::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value* NStructAssignment::codeGen(CodeGenContext &context) {
-    cout << "Generating struct assignment of " << this->structMember->id->name << "." << this->structMember->member->name << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating struct assignment of " << this->structMember->id->name << "." << this->structMember->member->name << std::endl;
+#endif
     auto varPtr = context.getSymbolValue(this->structMember->id->name);
     auto structPtr = context.builder.CreateLoad(varPtr, "structPtr");
     structPtr->setAlignment(4);
@@ -459,7 +487,7 @@ llvm::Value* NStructAssignment::codeGen(CodeGenContext &context) {
 
     std::vector<Value*> indices;
     auto value = this->expression->codeGen(context);
-//    auto index = ;
+
     indices.push_back(ConstantInt::get(context.typeSystem.intTy, 0, false));
     indices.push_back(ConstantInt::get(context.typeSystem.intTy, (uint64_t)memberIndex, false));
 
@@ -469,9 +497,9 @@ llvm::Value* NStructAssignment::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value *NArrayIndex::codeGen(CodeGenContext &context) {
-    
-    cout << "Generating array index expression of " << this->arrayName->name << endl;
-    
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating array index expression of " << this->arrayName->name << std::endl;
+#endif
     auto varPtr = context.getSymbolValue(this->arrayName->name);
     auto type = context.getSymbolType(this->arrayName->name);
     string typeStr = type->name;
@@ -486,7 +514,7 @@ llvm::Value *NArrayIndex::codeGen(CodeGenContext &context) {
     //if this array is the pointer pass-in by the caller so we use the arg that pass
     //in as the true reference
     if(context.isFuncArg(this->arrayName->name) ){
-        cout << "isFuncArg" << endl;
+        std::cout << "isFuncArg" << std::endl;
         varPtr = context.builder.CreateLoad(varPtr, "actualArrayPtr");
         //Here is a bug to be free
         //Aware that
@@ -494,7 +522,7 @@ llvm::Value *NArrayIndex::codeGen(CodeGenContext &context) {
         indices =  value ;//This line may be wrong.
         //indices = {0,value};
     }else if( varPtr->getType()->isPointerTy() ){
-        cout << this->arrayName->name << "Not isFuncArg" << endl;
+        std::cout << this->arrayName->name << "Not isFuncArg" << std::endl;
         indices = { ConstantInt::get(Type::getInt64Ty(context.llvmContext), 0), value };
     }else{
         return LogErrorV("The variable is not array");
@@ -507,7 +535,9 @@ llvm::Value *NArrayIndex::codeGen(CodeGenContext &context) {
 
 
 llvm::Value *NArrayAssignment::codeGen(CodeGenContext &context) {
-    cout << "Generating array index assignment of " << this->arrayIndex->arrayName->name << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating array index assignment of " << this->arrayIndex->arrayName->name << std::endl;
+#endif
     auto varPtr = context.getSymbolValue(this->arrayIndex->arrayName->name);
 
     if( varPtr == nullptr ){
@@ -515,7 +545,6 @@ llvm::Value *NArrayAssignment::codeGen(CodeGenContext &context) {
     }
     
     auto arrayPtr = context.builder.CreateLoad(varPtr, "arrayPtr");
-//    arrayPtr->setAlignment(16);
 
     if( !arrayPtr->getType()->isArrayTy() && !arrayPtr->getType()->isPointerTy() ){
         return LogErrorV("The variable is not array");
@@ -528,7 +557,9 @@ llvm::Value *NArrayAssignment::codeGen(CodeGenContext &context) {
 }
 
 llvm::Value *NArrayInitialization::codeGen(CodeGenContext &context) {
-    cout << "Generating array initialization of " << this->declaration->id->name << endl;
+#ifdef DISPLAY_PARSE_PROCESS
+    std::cout << "Generating array initialization of " << this->declaration->id->name << std::endl;
+#endif
     auto arrayPtr = this->declaration->codeGen(context);
     auto sizeVec = context.getArraySize(this->declaration->id->name);
     assert(sizeVec.size() == 1);
@@ -548,15 +579,10 @@ llvm::Value *NLiteral::codeGen(CodeGenContext &context) {
 }
 
 
-
-
-
-
-
-
-
 std::unique_ptr<NExpression> LogError(const char *str) {
-    fprintf(stderr, "LogError: %s\n", str);
+    static int64_t errorCount=0;
+    ++errorCount;
+    fprintf(stderr,"LogError%lld: %s\n",errorCount,str);
     return nullptr;
 }
 

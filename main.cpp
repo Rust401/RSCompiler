@@ -7,7 +7,6 @@
 extern shared_ptr<NBlock> programBlock;
 extern int yyparse();
 int main(int argc, char **argv) {
-
     //Use the token stream to build a AST whose root is programBlock
     yyparse();
     
@@ -24,12 +23,12 @@ int main(int argc, char **argv) {
     ObjGen(context);
 
 #ifdef PRINT_AND_JOSONGEN
-    string jsonFile = "visual/Tree.json";
-    std::ofstream astJson(jsonFile);
+    std::string outPutJsonFile = "visual/Tree.json";
+    std::ofstream astJson(outPutJsonFile);
     if( astJson.is_open() ){
         astJson << root;
         astJson.close();
-        cout << "json file output" << jsonFile << endl;
+        std::cout << "json file output" << outPutJsonFile << std::endl;
     }
 #endif
 

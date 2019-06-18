@@ -1,9 +1,5 @@
-//
-// Created by cs on 2017/5/31.
-//
-
-#ifndef TINYCOMPILER_TYPESYSTEM_H
-#define TINYCOMPILER_TYPESYSTEM_H
+#ifndef TYPESYSTEM_H
+#define TYPESYSTEM_H
 
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
@@ -13,79 +9,39 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <vector>
+#include <stdint.h>
 
 #include "ASTNodes.h"
+
 
 using std::string;
 using namespace llvm;
 
-//
-//struct VarType {
-//    string name;
-//
-//    VarType(string name): name(name){}
-//
-//    virtual Value* getDefaultValue(LLVMContext & context) const;
-//
-//    virtual bool isArray() const{
-//        return false;
-//    }
-//
-//    virtual bool isStruct() const{
-//        return false;
-//    }
-//
-//};
-//
-//struct VarArrayType: VarType{
-//
-//    NExpression & size;
-//
-//    VarArrayType(string name, NExpression& size)
-//            :VarType(name), size(size){
-//
-//    }
-//
-//    Value *getDefaultValue(LLVMContext &context) const override;
-//
-//
-//    bool isArray() const override{
-//        return true;
-//    }
-//
-//};
-//
-//struct VarStructType: VarType{
-//    VarStructType(string name): VarType(name){}
-//
-//    Value *getDefaultValue(LLVMContext &context) const override ;
-//
-//    bool isStruct() const override{
-//        return true;
-//    }
-//};
-
-//using TypeNamePair = std::pair<std::string, std::string>;
 #define TypeNamePair std::pair<std::string,std::string>
+#define ENABLE 1
+#define DISABLE 2
 
 class TypeSystem{
 private:
-
     LLVMContext& llvmContext;
 
-    std::map<string, std::vector<TypeNamePair>> _structMembers;
+    std::map<std::string, std::vector<TypeNamePair>> structMembers;
 
-    std::map<string, llvm::StructType*> _structTypes;
+    std::map<std::string, llvm::StructType*> structTypes;
 
-    std::map<Type*, std::map<Type*, CastInst::CastOps>> _castTable;
+    std::map<Type*, std::map<Type*, CastInst::CastOps>> castTable;
 
     void addCast(Type* from, Type* to, CastInst::CastOps op);
 
+    bool flag=0;
+    uint8_t state=ENABLE;
+
 public:
-    Type* floatTy = Type::getFloatTy(llvmContext);
     Type* intTy = Type::getInt32Ty(llvmContext);
     Type* charTy = Type::getInt8Ty(llvmContext);
+    Type* floatTy = Type::getFloatTy(llvmContext);
     Type* doubleTy = Type::getDoubleTy(llvmContext);
     Type* stringTy = Type::getInt8PtrTy(llvmContext);
     Type* voidTy = Type::getVoidTy(llvmContext);
@@ -95,16 +51,14 @@ public:
     TypeSystem(LLVMContext& context);
 
     void addStructType(string structName, llvm::StructType*);
-
     void addStructMember(string structName, string memType, string memName);
 
-    long getStructMemberIndex(string structName, string memberName);
+    int32_t getStructMemberIndex(string structName, string memberName);
 
     Type* getVarType(const NIdentifier& type) ;
     Type* getVarType(string typeStr) ;
 
     Value* getDefaultValue(string typeStr, LLVMContext &context) ;
-
     Value* cast(Value* value, Type* type, BasicBlock* block) ;
 
     bool isStruct(string typeStr) const;
@@ -114,4 +68,4 @@ public:
 };
 
 
-#endif //TINYCOMPILER_TYPESYSTEM_H
+#endif //TYPESYSTEM_H

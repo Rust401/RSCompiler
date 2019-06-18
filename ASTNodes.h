@@ -46,10 +46,10 @@ public:
 #endif
     }
 	virtual ~Node() {}
-	virtual string getTypeName() const = 0;	
+	virtual std::string getTypeName() const = 0;	
 	virtual llvm::Value *codeGen(CodeGenContext &context) { return (llvm::Value *)0; }
 #ifdef PRINT_AND_JOSONGEN
-    virtual void print(string prefix) const{}
+    virtual void print(std::string prefix) const{}
 	virtual Json::Value jsonGen() const { return Json::Value(); }
 #endif
 
@@ -60,11 +60,11 @@ class NStatement : public Node {
 public:
     NStatement(){}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NStatement";
 	}
 #ifdef PRINT_AND_JOSONGEN
-    virtual void print(string prefix) const override{
+    virtual void print(std::string prefix) const override{
         std::cout << prefix << getTypeName() << std::endl;
     }
 
@@ -80,11 +80,11 @@ class NExpression : public Node {
 public:
     NExpression(){}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NExpression";
 	}
 #ifdef PRINT_AND_JOSONGEN
-    virtual void print(string prefix) const override{
+    virtual void print(std::string prefix) const override{
         std::cout << prefix << getTypeName() << std::endl;
     }
 
@@ -111,7 +111,7 @@ public:
             ++doubleCount;
 	}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 #ifdef GET_TYPE_NAME
 		return "NDouble";
 #else
@@ -119,7 +119,7 @@ public:
 #endif
 	}
 #ifdef PRINT_AND_JOSONGEN
-	void print(string prefix) const override{
+	void print(std::string prefix) const override{
 		cout << prefix << getTypeName() << this->m_DELIM << value << endl;
 	}
 
@@ -145,11 +145,11 @@ public:
                 ++intCount;
     }
 
-    string getTypeName() const override {
+    std::string getTypeName() const override {
         return "NInteger";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
+    void print(std::string prefix) const override{
         cout << prefix << getTypeName() << this->m_DELIM << value << endl;
     }
 
@@ -182,7 +182,7 @@ public:
             ++exprCount;
 	}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NIdentifier";
 	}
 #ifdef PRINT_AND_JOSONGEN
@@ -195,8 +195,8 @@ public:
         return root;
     }
 
-	void print(string prefix) const override{
-        string nextPrefix = prefix+this->m_PREFIX;
+	void print(std::string prefix) const override{
+        std::string nextPrefix = prefix+this->m_PREFIX;
 		cout << prefix << getTypeName() << this->m_DELIM << name << (isArray ? "(Array)" : "") << endl;
         if( isArray && arraySize->size() > 0 ){
 //            assert(arraySize != nullptr);
@@ -228,7 +228,7 @@ public:
             ++methodCount;
 	}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NMethodCall";
 	}
 #ifdef PRINT_AND_JOSONGEN
@@ -242,8 +242,8 @@ public:
         return root;
     }
 
-	void print(string prefix) const override{
-		string nextPrefix = prefix+this->m_PREFIX;
+	void print(std::string prefix) const override{
+		std::string nextPrefix = prefix+this->m_PREFIX;
 		cout << prefix << getTypeName() << this->m_DELIM << endl;
 		this->id->print(nextPrefix);
 		for(auto it=arguments->begin(); it!=arguments->end(); it++){
@@ -266,7 +266,7 @@ public:
             : lhs(lhs), rhs(rhs), op(op) {
     }
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NBinaryOperator";
 	}
 #ifdef PRINT_AND_JOSONGEN
@@ -280,9 +280,9 @@ public:
         return root;
     }
 
-	void print(string prefix) const override{
-		string nextPrefix = prefix+this->m_PREFIX;
-		cout << prefix << getTypeName() << this->m_DELIM << op << endl;
+	void print(std::string prefix) const override{
+		std::string nextPrefix = prefix+this->m_PREFIX;
+		std::cout << prefix << getTypeName() << this->m_DELIM << op << std::endl;
 
 		lhs->print(nextPrefix);
 		rhs->print(nextPrefix);
@@ -303,13 +303,13 @@ public:
 		: lhs(lhs), rhs(rhs) {
 	}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NAssignment";
 	}
 #ifdef PRINT_AND_JOSONGEN
-	void print(string prefix) const override{
-		string nextPrefix = prefix+this->m_PREFIX;
-		cout << prefix << getTypeName() << this->m_DELIM << endl;
+	void print(std::string prefix) const override{
+		std::string nextPrefix = prefix+this->m_PREFIX;
+		std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 		lhs->print(nextPrefix);
 		rhs->print(nextPrefix);
 	}
@@ -334,13 +334,13 @@ public:
         ++blockCount;
     }
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NBlock";
 	}
 #ifdef PRINT_AND_JOSONGEN
-	void print(string prefix) const override{
-		string nextPrefix = prefix+this->m_PREFIX;
-		cout << prefix << getTypeName() << this->m_DELIM << endl;
+	void print(std::string prefix) const override{
+		std::string nextPrefix = prefix+this->m_PREFIX;
+		std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 		for(auto it=statements->begin(); it!=statements->end(); it++){
 			(*it)->print(nextPrefix);
 		}
@@ -369,12 +369,12 @@ public:
 		: expression(expression) {
 	}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NExpressionStatement";
 	}
 #ifdef PRINT_AND_JOSONGEN
-	void print(string prefix) const override{
-		string nextPrefix = prefix+this->m_PREFIX;
+	void print(std::string prefix) const override{
+		std::string nextPrefix = prefix+this->m_PREFIX;
 		std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 		expression->print(nextPrefix);
 	}
@@ -395,6 +395,7 @@ public:
 	const shared_ptr<NIdentifier> type;
 	shared_ptr<NIdentifier> id;
 	shared_ptr<NExpression> assignmentExpr = nullptr;
+    int32_t index;
 
     NVariableDeclaration(){}
 
@@ -405,13 +406,13 @@ public:
             assert(!type->isArray || (type->isArray && type->arraySize != nullptr));
 	}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NVariableDeclaration";
 	}
 #ifdef PRINT_AND_JOSONGEN
-	void print(string prefix) const override{
-		string nextPrefix = prefix+this->m_PREFIX;
-		cout << prefix << getTypeName() << this->m_DELIM << endl;
+	void print(std::string prefix) const override{
+		std::string nextPrefix = prefix+this->m_PREFIX;
+		std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 		type->print(nextPrefix);
 		id->print(nextPrefix);
         if( assignmentExpr != nullptr ){
@@ -448,13 +449,13 @@ public:
         assert(type->isType);
 	}
 
-	string getTypeName() const override {
+	std::string getTypeName() const override {
 		return "NFunctionDeclaration";
 	}
 #ifdef PRINT_AND_JOSONGEN
-	void print(string prefix) const override{
-		string nextPrefix = prefix+this->m_PREFIX;
-		cout << prefix << getTypeName() << this->m_DELIM << endl;
+	void print(std::string prefix) const override{
+		std::string nextPrefix = prefix+this->m_PREFIX;
+		std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 
 		type->print(nextPrefix);
 		id->print(nextPrefix);
@@ -502,13 +503,13 @@ public:
 
     }
 
-    string getTypeName() const override {
+    std::string getTypeName() const override {
         return "NStructDeclaration";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override {
-        string nextPrefix = prefix+this->m_PREFIX;
-        cout << prefix << getTypeName() << this->m_DELIM << this->name->name << endl;
+    void print(std::string prefix) const override {
+        std::string nextPrefix = prefix+this->m_PREFIX;
+        std::cout << prefix << getTypeName() << this->m_DELIM << this->name->name << std::endl;
 
         for(auto it=members->begin(); it!=members->end(); it++){
             (*it)->print(nextPrefix);
@@ -542,7 +543,7 @@ public:
 
     }
 
-    string getTypeName() const override {
+    std::string getTypeName() const override {
         return "NReturnStatement";
     }
 #ifdef PRINT_AND_JOSONGEN
@@ -553,9 +554,9 @@ public:
         return root;
     }
 
-    void print(string prefix) const override {
-        string nextPrefix = prefix + this->m_PREFIX;
-        cout << prefix << getTypeName() << this->m_DELIM << endl;
+    void print(std::string prefix) const override {
+        std::string nextPrefix = prefix + this->m_PREFIX;
+        std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 
         expression->print(nextPrefix);
     }
@@ -579,12 +580,12 @@ public:
 
     }
 
-    string getTypeName() const override {
+    std::string getTypeName() const override {
         return "NIfStatement";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
-        string nextPrefix = prefix + this->m_PREFIX;
+    void print(std::string prefix) const override{
+        std::string nextPrefix = prefix + this->m_PREFIX;
         cout << prefix << getTypeName() << this->m_DELIM << endl;
 
         condition->print(nextPrefix);
@@ -628,14 +629,14 @@ public:
         }
     }
 
-    string getTypeName() const override{
+    std::string getTypeName() const override{
         return "NForStatement";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
+    void print(std::string prefix) const override{
 
-        string nextPrefix = prefix + this->m_PREFIX;
-        cout << prefix << getTypeName() << this->m_DELIM << endl;
+        std::string nextPrefix = prefix + this->m_PREFIX;
+        std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 
         if( initial )
             initial->print(nextPrefix);
@@ -677,13 +678,13 @@ public:
             : id(structName),member(member) {
     }
 
-    string getTypeName() const override{
+    std::string getTypeName() const override{
         return "NStructMember";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
+    void print(std::string prefix) const override{
 
-        string nextPrefix = prefix + this->m_PREFIX;
+        std::string nextPrefix = prefix + this->m_PREFIX;
         cout << prefix << getTypeName() << this->m_DELIM << endl;
 
         id->print(nextPrefix);
@@ -723,19 +724,18 @@ public:
             : arrayName(name), expressions(list){
     }
 
-    string getTypeName() const override{
+    std::string getTypeName() const override{
         return "NArrayIndex";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
-        string nextPrefix = prefix + this->m_PREFIX;
+    void print(std::string prefix) const override{
+        std::string nextPrefix = prefix + this->m_PREFIX;
         cout << prefix << getTypeName() << this->m_DELIM << endl;
 
         arrayName->print(nextPrefix);
         for(auto it=expressions->begin(); it!=expressions->end(); it++){
             (*it)->print(nextPrefix);
         }
-//        expression->print(nextPrefix);
     }
 
     Json::Value jsonGen() const override {
@@ -743,7 +743,6 @@ public:
         root["name"] = getTypeName();
 
         root["children"].append(arrayName->jsonGen());
-//        root["children"].append(expression->jsonGen());
         for(auto it=expressions->begin(); it!=expressions->end(); it++){
             root["children"].append((*it)->jsonGen());
         }
@@ -767,14 +766,14 @@ public:
 
     }
 
-    string getTypeName() const override{
+    std::string getTypeName() const override{
         return "NArrayAssignment";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
+    void print(std::string prefix) const override{
 
-        string nextPrefix = prefix + this->m_PREFIX;
-        cout << prefix << getTypeName() << this->m_DELIM << endl;
+        std::string nextPrefix = prefix + this->m_PREFIX;
+        std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 
         arrayIndex->print(nextPrefix);
         expression->print(nextPrefix);
@@ -792,7 +791,7 @@ public:
     }
 #endif
 
-    llvm::Value *codeGen(CodeGenContext &context) override ;
+    llvm::Value *codeGen(CodeGenContext&) override ;
 
 };
 
@@ -809,14 +808,14 @@ public:
 
     }
 
-    string getTypeName() const override{
+    std::string getTypeName() const override{
         return "NArrayInitialization";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
+    void print(std::string prefix) const override{
 
-        string nextPrefix = prefix + this->m_PREFIX;
-        cout << prefix << getTypeName() << this->m_DELIM << endl;
+        std::string nextPrefix = prefix + this->m_PREFIX;
+        std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 
         declaration->print(nextPrefix);
         for(auto it=expressionList->begin(); it!=expressionList->end(); it++){
@@ -853,14 +852,14 @@ public:
 
     }
 
-    string getTypeName() const override{
+    std::string getTypeName() const override{
         return "NStructAssignment";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
+    void print(std::string prefix) const override{
 
-        string nextPrefix = prefix + this->m_PREFIX;
-        cout << prefix << getTypeName() << this->m_DELIM << endl;
+        std::string nextPrefix = prefix + this->m_PREFIX;
+        std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 
         structMember->print(nextPrefix);
         expression->print(nextPrefix);
@@ -887,25 +886,20 @@ public:
 
     NLiteral(){}
 
-    NLiteral(const string &str) {
+    NLiteral(const std::string &str) {
         value = str.substr(1, str.length()-2);
     }
 
-    string getTypeName() const override{
+    std::string getTypeName() const override{
         return "NLiteral";
     }
 #ifdef PRINT_AND_JOSONGEN
-    void print(string prefix) const override{
-
-        cout << prefix << getTypeName() << this->m_DELIM << value << endl;
-
+    void print(std::string prefix) const override{
+        std::cout << prefix << getTypeName() << this->m_DELIM << value << std::endl;
     }
-
-
     Json::Value jsonGen() const override {
         Json::Value root;
         root["name"] = getTypeName() + this->m_DELIM + value;
-
         return root;
     }
 #endif
@@ -913,8 +907,6 @@ public:
     llvm::Value *codeGen(CodeGenContext&) override;
 
 };
-
-
 std::unique_ptr<NExpression> LogError(const char* str);
 
 #endif
