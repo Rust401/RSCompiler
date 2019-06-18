@@ -1,6 +1,7 @@
 #ifndef ASTNODES_H
 #define ASTNODES_H
 //#define PRINT_AND_JOSONGEN
+//#define GET_TYPE_NAME
 //#define PRINT_VALID_NODE_NUM
 #include <llvm/IR/Value.h>
 #include <json/json.h>
@@ -10,23 +11,28 @@
 #include <string>
 #include <stdint.h>
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::shared_ptr;
-using std::make_shared;
-
 class CodeGenContext;
 class NBlock;
 class NStatement;
 class NExpression;
 class NVariableDeclaration;
 
+using std::cout;
+using std::endl;
+using std::string;
+using std::shared_ptr;
+using std::make_shared;
+
 typedef std::vector<shared_ptr<NStatement>> StatementList;
 typedef std::vector<shared_ptr<NExpression>> ExpressionList;
 typedef std::vector<shared_ptr<NVariableDeclaration>> VariableList;
 
 static uint64_t nodeCount=0;
+static uint64_t intCount=0;
+static uint64_t doubleCount=0;
+static uint64_t methodCount=0;
+static uint64_t exprCount=0;
+static uint64_t blockCount=0;
 
 class Node {
 protected:
@@ -49,26 +55,6 @@ public:
 
 };
 
-class NExpression : public Node {
-public:
-    NExpression(){}
-
-	string getTypeName() const override {
-		return "NExpression";
-	}
-#ifdef PRINT_AND_JOSONGEN
-    virtual void print(string prefix) const override{
-        cout << prefix << getTypeName() << endl;
-    }
-
-    Json::Value jsonGen() const override {
-        Json::Value root;
-        root["name"] = getTypeName();
-        return root;
-    }
-#endif
-
-};
 
 class NStatement : public Node {
 public:
@@ -79,7 +65,7 @@ public:
 	}
 #ifdef PRINT_AND_JOSONGEN
     virtual void print(string prefix) const override{
-        cout << prefix << getTypeName() << endl;
+        std::cout << prefix << getTypeName() << std::endl;
     }
 
     Json::Value jsonGen() const override {
@@ -90,19 +76,47 @@ public:
 #endif
 };
 
+class NExpression : public Node {
+public:
+    NExpression(){}
+
+	string getTypeName() const override {
+		return "NExpression";
+	}
+#ifdef PRINT_AND_JOSONGEN
+    virtual void print(string prefix) const override{
+        std::cout << prefix << getTypeName() << std::endl;
+    }
+
+    Json::Value jsonGen() const override {
+        Json::Value root;
+        root["name"] = getTypeName();
+        return root;
+    }
+#endif
+
+};
+
+
+
 class NDouble : public NExpression {
 public:
 	double value;
+    uint64_t index;
 
-    NDouble(){}
+    NDouble(){++doubleCount;}
 
 	NDouble(double value)
 		: value(value) {
-		// return "NDoub le=" << value << endl;
+            ++doubleCount;
 	}
 
 	string getTypeName() const override {
+#ifdef GET_TYPE_NAME
 		return "NDouble";
+#else
+        return "";
+#endif
 	}
 #ifdef PRINT_AND_JOSONGEN
 	void print(string prefix) const override{
@@ -116,18 +130,19 @@ public:
     }
 #endif
 
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NInteger : public NExpression {
 public:
     uint64_t value;
+    uint64_t index;
 
-    NInteger(){}
+    NInteger(){++intCount;}
 
     NInteger(uint64_t value)
             : value(value) {
-
+                ++intCount;
     }
 
     string getTypeName() const override {
@@ -149,7 +164,7 @@ public:
         return NDouble(value);
     }
 
-    virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+    virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NIdentifier : public NExpression {
@@ -158,13 +173,13 @@ public:
     bool isType = false;
     bool isArray = false;
 
-    shared_ptr<ExpressionList> arraySize = make_shared<ExpressionList>();
+    std::shared_ptr<ExpressionList> arraySize = std::make_shared<ExpressionList>();
 
-    NIdentifier(){}
+    NIdentifier(){++exprCount;}
 
 	NIdentifier(const std::string &name)
 		: name(name) {
-		// return "NIdentifier=" << name << endl;
+            ++exprCount;
 	}
 
 	string getTypeName() const override {
@@ -191,7 +206,7 @@ public:
         }
 	}
 #endif
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NMethodCall: public NExpression {
@@ -200,15 +215,17 @@ public:
 	shared_ptr<ExpressionList> arguments = make_shared<ExpressionList>();
 
     NMethodCall(){
-
+        ++methodCount;
     }
 
 	NMethodCall(const shared_ptr<NIdentifier> id, shared_ptr<ExpressionList> arguments)
 		: id(id), arguments(arguments) {
+            ++methodCount;
 	}
 
 	NMethodCall(const shared_ptr<NIdentifier> id)
 		: id(id) {
+            ++methodCount;
 	}
 
 	string getTypeName() const override {
@@ -234,7 +251,7 @@ public:
 		}
 	}
 #endif
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NBinaryOperator : public NExpression {
@@ -272,7 +289,7 @@ public:
 	}
 #endif
 
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NAssignment : public NExpression {
@@ -306,7 +323,7 @@ public:
     }
 #endif
 
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NBlock : public NExpression {
@@ -314,6 +331,7 @@ public:
 	shared_ptr<StatementList> statements = make_shared<StatementList>();
 
     NBlock(){
+        ++blockCount;
     }
 
 	string getTypeName() const override {
@@ -338,7 +356,7 @@ public:
     }
 #endif
 
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NExpressionStatement : public NStatement {
@@ -357,7 +375,7 @@ public:
 #ifdef PRINT_AND_JOSONGEN
 	void print(string prefix) const override{
 		string nextPrefix = prefix+this->m_PREFIX;
-		cout << prefix << getTypeName() << this->m_DELIM << endl;
+		std::cout << prefix << getTypeName() << this->m_DELIM << std::endl;
 		expression->print(nextPrefix);
 	}
 
@@ -369,7 +387,7 @@ public:
     }
 #endif
 
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NVariableDeclaration : public NStatement {
@@ -380,9 +398,9 @@ public:
 
     NVariableDeclaration(){}
 
-	NVariableDeclaration(const shared_ptr<NIdentifier> type, shared_ptr<NIdentifier> id, shared_ptr<NExpression> assignmentExpr = NULL)
+	NVariableDeclaration(const shared_ptr<NIdentifier> type, shared_ptr<NIdentifier> id, shared_ptr<NExpression> assignmentExpr = nullptr)
 		: type(type), id(id), assignmentExpr(assignmentExpr) {
-            cout << "isArray = " << type->isArray << endl;
+            std::cout << "isArray = " << type->isArray << std::endl;
             assert(type->isType);
             assert(!type->isArray || (type->isArray && type->arraySize != nullptr));
 	}
@@ -412,7 +430,7 @@ public:
         return root;
     }
 #endif
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NFunctionDeclaration : public NStatement {
@@ -469,13 +487,13 @@ public:
     }
 #endif
 
-	virtual llvm::Value* codeGen(CodeGenContext& context) override ;
+	virtual llvm::Value* codeGen(CodeGenContext&) override ;
 };
 
 class NStructDeclaration: public NStatement{
 public:
-    shared_ptr<NIdentifier> name;
-    shared_ptr<VariableList> members = make_shared<VariableList>();
+    std::shared_ptr<NIdentifier> name;
+    std::shared_ptr<VariableList> members = std::make_shared<VariableList>();
 
     NStructDeclaration(){}
 
@@ -550,8 +568,8 @@ class NIfStatement: public NStatement{
 public:
 
     shared_ptr<NExpression>  condition;
-    shared_ptr<NBlock> trueBlock;          // should not be null
-    shared_ptr<NBlock> falseBlock;         // can be null
+    shared_ptr<NBlock> trueBlock;          // must not null
+    shared_ptr<NBlock> falseBlock;         // could null
 
 
     NIfStatement(){}
@@ -591,7 +609,7 @@ public:
     }
 #endif
 
-    llvm::Value *codeGen(CodeGenContext &context) override ;
+    llvm::Value *codeGen(CodeGenContext&) override ;
 
 
 };
@@ -644,7 +662,7 @@ public:
         return root;
     }
 #endif
-    llvm::Value *codeGen(CodeGenContext &context) override ;
+    llvm::Value *codeGen(CodeGenContext&) override ;
 
 };
 
@@ -683,15 +701,15 @@ public:
         return root;
     }
 #endif
-    llvm::Value *codeGen(CodeGenContext &context) override ;
+    llvm::Value *codeGen(CodeGenContext&) override ;
 
 };
 
 class NArrayIndex: public NExpression{
 public:
-    shared_ptr<NIdentifier>  arrayName;
-//    shared_ptr<NExpression>  expression;
-    shared_ptr<ExpressionList> expressions = make_shared<ExpressionList>();
+    std::shared_ptr<NIdentifier>  arrayName;
+    std::shared_ptr<ExpressionList> expressions = std::make_shared<ExpressionList>();
+    int32_t aSize;
 
     NArrayIndex(){}
 
@@ -733,14 +751,14 @@ public:
     }
 #endif
 
-    llvm::Value *codeGen(CodeGenContext &context) override ;
+    llvm::Value *codeGen(CodeGenContext&) override ;
 
 };
 
 class NArrayAssignment: public NExpression{
 public:
-    shared_ptr<NArrayIndex> arrayIndex;
-    shared_ptr<NExpression>  expression;
+    std::shared_ptr<NArrayIndex> arrayIndex;
+    std::shared_ptr<NExpression>  expression;
 
     NArrayAssignment(){}
 
@@ -783,8 +801,8 @@ public:
 
     NArrayInitialization(){}
 
-    shared_ptr<NVariableDeclaration> declaration;
-    shared_ptr<ExpressionList> expressionList = make_shared<ExpressionList>();
+    std::shared_ptr<NVariableDeclaration> declaration;
+    std::shared_ptr<ExpressionList> expressionList = std::make_shared<ExpressionList>();
 
     NArrayInitialization(shared_ptr<NVariableDeclaration> dec, shared_ptr<ExpressionList> list)
             : declaration(dec), expressionList(list){
@@ -825,8 +843,8 @@ public:
 
 class NStructAssignment: public NExpression{
 public:
-    shared_ptr<NStructMember> structMember;
-    shared_ptr<NExpression>  expression;
+    std::shared_ptr<NStructMember> structMember;
+    std::shared_ptr<NExpression>  expression;
 
     NStructAssignment(){}
 
@@ -859,13 +877,13 @@ public:
         return root;
     }
 #endif
-    llvm::Value *codeGen(CodeGenContext &context) override;
+    llvm::Value *codeGen(CodeGenContext&) override;
 
 };
 
 class NLiteral: public NExpression{
 public:
-    string value;
+    std::string value;
 
     NLiteral(){}
 
@@ -892,7 +910,7 @@ public:
     }
 #endif
 
-    llvm::Value *codeGen(CodeGenContext &context) override;
+    llvm::Value *codeGen(CodeGenContext&) override;
 
 };
 
