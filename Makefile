@@ -8,7 +8,7 @@ OBJS = grammar.o \
 		ObjGen.o \
 		TypeSystem.o \
 
-LLVMCONFIG = llvm-config
+LLVMCONFIG = /usr/local/opt/llvm/bin/llvm-config
 CPPFLAGS = `$(LLVMCONFIG) --cppflags`  `pkg-config --cflags jsoncpp` -std=c++11
 LDFLAGS = `$(LLVMCONFIG) --ldflags` -pthread -ldl -lz -lncurses -rdynamic -L/usr/local/lib -ljsoncpp
 LIBS = `$(LLVMCONFIG) --libs`
@@ -35,8 +35,8 @@ token.cpp: token.l grammar.hpp
 compiler: $(OBJS)
 	clang++ $(CPPFLAGS) -o $@ $(OBJS) $(LIBS) $(LDFLAGS)
 
-test: compiler testFile/test.input
-	cat testFile/test.input | ./compiler
+test: compiler testFile/newtest.input
+	cat testFile/newtest.input | ./compiler
 
 run: compiler
 	clang++ -o dude output.o

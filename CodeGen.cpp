@@ -1,10 +1,10 @@
 #include <llvm/IR/Value.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Module.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/IRPrintingPasses.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Module.h>
 #include "CodeGen.h"
 #include "ASTNodes.h"
 #include "TypeSystem.h"
@@ -45,7 +45,6 @@ static llvm::Value* calcArrayIndex(shared_ptr<NArrayIndex> index, CodeGenContext
 }
 
 void CodeGenContext::generateCode(NBlock& root) {
-    cout << "Generating IR code" << endl;
 
     std::vector<Type*> sysArgs;
     FunctionType* mainFuncType = FunctionType::get(Type::getVoidTy(this->llvmContext), makeArrayRef(sysArgs), false);
@@ -56,7 +55,6 @@ void CodeGenContext::generateCode(NBlock& root) {
     Value* retValue = root.codeGen(*this);
     popBlock();
 
-    cout << "Code generate success" << endl;
 
     PassManager passManager;
     passManager.add(createPrintModulePass(outs()));
@@ -155,13 +153,11 @@ llvm::Value* NBlock::codeGen(CodeGenContext &context) {
 llvm::Value* NInteger::codeGen(CodeGenContext &context) {
     cout << "Generating Integer: " << this->value << endl;
     return ConstantInt::get(Type::getInt32Ty(context.llvmContext), this->value, true);
-//    return ConstantInt::get(context.llvmContext, APInt(INTBITS, this->value, true));
 }
 
 llvm::Value* NDouble::codeGen(CodeGenContext &context) {
     cout << "Generating Double: " << this->value << endl;
     return ConstantFP::get(Type::getDoubleTy(context.llvmContext), this->value);
-//    return ConstantFP::get(context.llvmContext, APFloat(this->value));
 }
 
 llvm::Value* NIdentifier::codeGen(CodeGenContext &context) {
@@ -174,7 +170,6 @@ llvm::Value* NIdentifier::codeGen(CodeGenContext &context) {
         auto arrayPtr = context.builder.CreateLoad(value, "arrayPtr");
         if( arrayPtr->getType()->isArrayTy() ){
             cout << "(Array Type)" << endl;
-//            arrayPtr->setAlignment(16);
             std::vector<Value*> indices;
             indices.push_back(ConstantInt::get(context.typeSystem.intTy, 0, false));
             auto ptr = context.builder.CreateInBoundsGEP(value, indices, "arrayPtr");
@@ -337,7 +332,7 @@ llvm::Value* NIfStatement::codeGen(CodeGenContext &context) {
 
     condValue = CastToBoolean(context, condValue);
 
-    Function* theFunction = context.builder.GetInsertBlock()->getParent();      // the function where if statement is in
+    Function* theFunction = context.builder.GetInsertBlock()->getParent();
 
     BasicBlock *thenBB = BasicBlock::Create(context.llvmContext, "then", theFunction);
     BasicBlock *falseBB = BasicBlock::Create(context.llvmContext, "else");

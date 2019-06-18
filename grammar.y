@@ -20,6 +20,7 @@
 	std::vector<shared_ptr<NExpression>>* exprvec;
 	std::string* string;
 	int token;
+	double test;
 }
 
 %token <string> TIDENTIFIER TINTEGER TDOUBLE TYINT TYDOUBLE TYFLOAT TYCHAR TYBOOL TYVOID TYSTRING TEXTERN TLITERAL

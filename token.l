@@ -1,6 +1,8 @@
 %{
 #include <stdio.h>
 #include <string>
+#include <stdint.h>
+#include <memory.h>
 #include "ASTNodes.h"
 #include "grammar.hpp"
 #define SAVE_TOKEN yylval.string = new string(yytext)
@@ -14,12 +16,6 @@ static FILE* yyparse_file_ptr;
 %%
 "#".*                   ;
 [ \t\r\n]				;
-"if"                    puts("TIF"); return TOKEN(TIF);
-"else"                  puts("TELSE"); return TOKEN(TELSE);
-"return"                puts("TRETURN"); return TOKEN(TRETURN);
-"for"                   puts("TFOR"); return TOKEN(TFOR);
-"while"                 puts("TWHILE"); return TOKEN(TWHILE);
-"struct"                puts("TSTRUCT"); return TOKEN(TSTRUCT);
 "int"                   SAVE_TOKEN; puts("TYINT");  return TYINT;
 "double"                SAVE_TOKEN; puts("TYDOUBLE"); return TYDOUBLE;
 "float"                 SAVE_TOKEN; puts("TYFLOAT"); return TYFLOAT;
@@ -28,6 +24,12 @@ static FILE* yyparse_file_ptr;
 "string"                SAVE_TOKEN; puts("TYSTRING"); return TYSTRING;
 "void"                  SAVE_TOKEN; puts("TYVOID"); return TYVOID;
 "extern"                SAVE_TOKEN; puts("TEXTERN"); return TEXTERN;
+"if"                    puts("TIF"); return TOKEN(TIF);
+"else"                  puts("TELSE"); return TOKEN(TELSE);
+"return"                puts("TRETURN"); return TOKEN(TRETURN);
+"for"                   puts("TFOR"); return TOKEN(TFOR);
+"while"                 puts("TWHILE"); return TOKEN(TWHILE);
+"struct"                puts("TSTRUCT"); return TOKEN(TSTRUCT);
 [a-zA-Z_][a-zA-Z0-9_]*	SAVE_TOKEN; puts("TIDENTIFIER"); return TIDENTIFIER;
 [0-9]+\.[0-9]*			SAVE_TOKEN; puts("TDOUBLE"); return TDOUBLE;
 [0-9]+  				SAVE_TOKEN; puts("TINTEGER"); return TINTEGER;
@@ -59,8 +61,6 @@ static FILE* yyparse_file_ptr;
 "<<"                    puts("TSHIFTL"); return TOKEN(TSHIFTL);
 ";"                     puts("TSEMICOLON"); return TOKEN(TSEMICOLON);
 .						printf("Unknown token:%s\n", yytext); yyterminate();
-
-
 
 %%
 

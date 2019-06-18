@@ -1,13 +1,14 @@
-#ifndef ASTNODES_H__
-#define ASTNODES_H__
+#ifndef ASTNODES_H
+#define ASTNODES_H
 //#define PRINT_AND_JOSONGEN
+//#define PRINT_VALID_NODE_NUM
 #include <llvm/IR/Value.h>
 #include <json/json.h>
 #include <iostream>
 #include <vector>
-
 #include <memory>
 #include <string>
+#include <stdint.h>
 
 using std::cout;
 using std::endl;
@@ -25,12 +26,19 @@ typedef std::vector<shared_ptr<NStatement>> StatementList;
 typedef std::vector<shared_ptr<NExpression>> ExpressionList;
 typedef std::vector<shared_ptr<NVariableDeclaration>> VariableList;
 
+static uint64_t nodeCount=0;
+
 class Node {
 protected:
 	const char m_DELIM = ':';
-	const char* m_PREFIX = "--";
+	const char* m_PREFIX = "----";
 public:
-    Node(){}
+    Node(){
+        ++nodeCount;
+#ifdef PRINT_AND_JOSONGEN       
+        std::cout<<nodeCount<<std::endl;
+#endif
+    }
 	virtual ~Node() {}
 	virtual string getTypeName() const = 0;	
 	virtual llvm::Value *codeGen(CodeGenContext &context) { return (llvm::Value *)0; }

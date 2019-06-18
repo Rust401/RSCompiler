@@ -1,5 +1,5 @@
-#ifndef __CODEGEN_H__
-#define __CODEGEN_H__
+#ifndef CODEGEN_H
+#define CODEGEN_H
 
 
 #include <llvm/IR/Value.h>
@@ -28,7 +28,7 @@ public:
     BasicBlock * block;
     Value * returnValue;
     std::map<string, Value*> locals;
-    std::map<string, shared_ptr<NIdentifier>> types;     // type name string of vars
+    std::map<string, shared_ptr<NIdentifier>> types;     
     std::map<string, bool> isFuncArg;
     std::map<string, std::vector<uint64_t>> arraySizes;
 };
@@ -50,7 +50,6 @@ public:
 
     Value* getSymbolValue(string name) const{
         for(auto it=blockStack.rbegin(); it!=blockStack.rend(); it++){
-//            cout << "(*it)->locals[" << name << "] = " << (*it)->locals[name] << endl;
             if( (*it)->locals.find(name) != (*it)->locals.end() ){
                 return (*it)->locals[name];
             }
@@ -60,7 +59,6 @@ public:
 
     shared_ptr<NIdentifier> getSymbolType(string name) const{
         for(auto it=blockStack.rbegin(); it!=blockStack.rend(); it++){
-//            cout << "(*it)->locals[" << name << "] = " << (*it)->locals[name] << endl;
             if( (*it)->types.find(name) != (*it)->types.end() ){
                 return (*it)->types[name];
             }

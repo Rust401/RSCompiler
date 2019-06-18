@@ -1,34 +1,22 @@
-struct Point{
-    int x
-    int y
+extern int printf(string format)
+extern int puts(string s)
+
+int fib(int n){
+    int result
+    if(n<3){
+		result=1
+	}else{
+		result=fib(n-1)+fib(n-2)
+	}
+    return result
 }
 
-extern int printf(string str)
-extern int puts(string str)
-
 int main(){
-    struct Point p
-    p.x = 1
-
-    int[13] arr = [ 1,2,3,4,5,6,7,8,9,10,11,12 ]
-    int[3][4] arr2
-    
+    int n=20
     int i
-    int j
-
-    for(i=0; i<3; i=i+1){
-        for(j=0; j<4; j=j+1){
-            arr2[i][j] = arr[i*4+j]
-        }
-    }
-
-    for(i=0; i<3; i=i+1){
-        for(j=0; j<4; j=j+1){
-            printf("%d,", arr2[i][j])
-        }
+    for(i=0;i<n;i=i+1){
+        printf("%d",fib(i))
         puts("")
     }
-    
-    
     return 0
 }
