@@ -36,9 +36,11 @@ compiler: $(OBJS)
 	clang++ $(CPPFLAGS) -o $@ $(OBJS) $(LIBS) $(LDFLAGS)
 
 test: compiler testFile/newtest.input
-	cat testFile/newtest.input | ./compiler
+	cat testFile/newtest.input | ./compiler > IR.txt
+	cat IR.txt
+	mv IR.txt testFile/
 
-run: compiler
+run: compiler test
 	clang++ -o dude output.o
 	mv dude bin/
 	bin/dude

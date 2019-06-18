@@ -77,10 +77,10 @@ llvm::Value* NAssignment::codeGen(CodeGenContext &context) {
         return LogErrorV("Undeclared variable");
     }
     Value* exp = exp = this->rhs->codeGen(context);
-
+#ifdef DISPLAY_PARSE_PROCESS
     std::cout << "dst typeid = " << TypeSystem::llvmTypeToStr(context.typeSystem.getVarType(dstTypeStr)) << std::endl;
     std::cout << "exp typeid = " << TypeSystem::llvmTypeToStr(exp) << std::endl;
-
+#endif
     exp = context.typeSystem.cast(exp, context.typeSystem.getVarType(dstTypeStr), context.currentBlock());
     context.builder.CreateStore(exp, dst);
     return dst;
@@ -107,9 +107,11 @@ llvm::Value* NBinaryOperator::codeGen(CodeGenContext &context) {
     if( !L || !R ){
         return nullptr;
     }
+#ifdef DISPLAY_PARSE_PROCESS
     std::cout << "fp = " << ( fp ? "true" : "false" ) << std::endl;
     std::cout << "L is " << TypeSystem::llvmTypeToStr(L) << std::endl;
     std::cout << "R is " << TypeSystem::llvmTypeToStr(R) << std::endl;
+#endif
 
     switch (this->op){
         case TPLUS:
@@ -582,7 +584,7 @@ llvm::Value *NLiteral::codeGen(CodeGenContext &context) {
 std::unique_ptr<NExpression> LogError(const char *str) {
     static int64_t errorCount=0;
     ++errorCount;
-    fprintf(stderr,"LogError%lld: %s\n",errorCount,str);
+    //fprintf(stderr,"LogError%lld: %s\n",errorCount,str);
     return nullptr;
 }
 

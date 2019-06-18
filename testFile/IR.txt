@@ -1,0 +1,79 @@
+; ModuleID = 'main'
+source_filename = "main"
+
+@string = private unnamed_addr constant [3 x i8] c"%d\00"
+@string.1 = private unnamed_addr constant [1 x i8] zeroinitializer
+
+declare i32 @printf(i8*)
+
+declare i32 @puts(i8*)
+
+define i32 @fib(i32 %n) {
+entry:
+  %0 = alloca i32
+  store i32 %n, i32* %0
+  %1 = alloca i32
+  %arrayPtr = load i32, i32* %0
+  %2 = load i32, i32* %0
+  %cmptmp = icmp ult i32 %2, 2
+  %3 = icmp ne i1 %cmptmp, false
+  br i1 %3, label %then, label %else
+
+then:                                             ; preds = %entry
+  store i32 1, i32* %1
+  br label %ifcont
+
+else:                                             ; preds = %entry
+  %arrayPtr1 = load i32, i32* %0
+  %4 = load i32, i32* %0
+  %subtmp = sub i32 %4, 1
+  %calltmp = call i32 @fib(i32 %subtmp)
+  %arrayPtr2 = load i32, i32* %0
+  %5 = load i32, i32* %0
+  %subtmp3 = sub i32 %5, 2
+  %calltmp4 = call i32 @fib(i32 %subtmp3)
+  %addtmp = add i32 %calltmp, %calltmp4
+  store i32 %addtmp, i32* %1
+  br label %ifcont
+
+ifcont:                                           ; preds = %else, %then
+  %arrayPtr5 = load i32, i32* %1
+  %6 = load i32, i32* %1
+  ret i32 %6
+}
+
+define i32 @main() {
+entry:
+  %0 = alloca i32
+  store i32 20, i32* %0
+  %1 = alloca i32
+  store i32 0, i32* %1
+  %arrayPtr = load i32, i32* %1
+  %2 = load i32, i32* %1
+  %arrayPtr1 = load i32, i32* %0
+  %3 = load i32, i32* %0
+  %cmptmp = icmp ult i32 %2, %3
+  %4 = icmp ne i1 %cmptmp, false
+  br i1 %4, label %forloop, label %forcont
+
+forloop:                                          ; preds = %forloop, %entry
+  %arrayPtr2 = load i32, i32* %1
+  %5 = load i32, i32* %1
+  %calltmp = call i32 @fib(i32 %5)
+  %calltmp3 = call i32 @printf([3 x i8]* @string, i32 %calltmp)
+  %calltmp4 = call i32 @puts([1 x i8]* @string.1)
+  %arrayPtr5 = load i32, i32* %1
+  %6 = load i32, i32* %1
+  %addtmp = add i32 %6, 1
+  store i32 %addtmp, i32* %1
+  %arrayPtr6 = load i32, i32* %1
+  %7 = load i32, i32* %1
+  %arrayPtr7 = load i32, i32* %0
+  %8 = load i32, i32* %0
+  %cmptmp8 = icmp ult i32 %7, %8
+  %9 = icmp ne i1 %cmptmp8, false
+  br i1 %9, label %forloop, label %forcont
+
+forcont:                                          ; preds = %forloop, %entry
+  ret i32 0
+}

@@ -64,7 +64,8 @@ void ObjGen(CodeGenContext & context, const string& filename){
     pass.run(*context.theModule.get());
     dest.flush();
 
-    outs() << "Write OBJ code to : " << filename.c_str() << "\n";
+    //commit this to get the clean output
+    //outs() << "Write OBJ code to : " << filename.c_str() << "\n";
 
     return;
 }

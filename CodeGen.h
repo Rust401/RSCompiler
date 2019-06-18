@@ -86,7 +86,7 @@ public:
     }
 
     void setFuncArg(std::string name, bool value){
-        std::cout << "Set " << name << " as func arg" << std::endl;
+        //std::cout << "Set " << name << " as func arg" << std::endl;
         theBlockStack.back()->isFuncArg[name] = value;
     }
 
@@ -116,7 +116,7 @@ public:
     }
 
     void setArraySize(std::string name, std::vector<uint64_t> value){
-        std::cout << "setArraySize: " << name << ": " << value.size() << std::endl;
+        //std::cout << "setArraySize: " << name << ": " << value.size() << std::endl;
         theBlockStack.back()->arraySizes[name] = value;
     }
 

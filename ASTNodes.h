@@ -1,7 +1,6 @@
 #ifndef ASTNODES_H
 #define ASTNODES_H
 //#define PRINT_AND_JOSONGEN
-//#define GET_TYPE_NAME
 //#define PRINT_VALID_NODE_NUM
 #include <llvm/IR/Value.h>
 #include <json/json.h>
@@ -401,7 +400,8 @@ public:
 
 	NVariableDeclaration(const shared_ptr<NIdentifier> type, shared_ptr<NIdentifier> id, shared_ptr<NExpression> assignmentExpr = nullptr)
 		: type(type), id(id), assignmentExpr(assignmentExpr) {
-            std::cout << "isArray = " << type->isArray << std::endl;
+            //commit this line to get the clean output
+            //std::cout << "isArray = " << type->isArray << std::endl;
             assert(type->isType);
             assert(!type->isArray || (type->isArray && type->arraySize != nullptr));
 	}
